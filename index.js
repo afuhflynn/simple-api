@@ -1,10 +1,13 @@
 import express from "express";
 import { config } from "dotenv"; // This package must be installed and an env file created in the root dir
+import morgan from "morgan";
 
 config(); // Initialize env variables
 
 const PORT = process.env.PORT || 3000;
 const app = express();
+
+app.use(morgan("dev"));
 
 // Root route
 app.get("/", (req, res) => {
@@ -17,7 +20,7 @@ app.get("/about", (req, res) => {
 });
 
 // Respond to 404 requests (Page not found)
-app.get("*", (req, res) => {
+app.use((req, res) => {
   res.status(404).json({ message: "Oops, Page not found!" });
 });
 
