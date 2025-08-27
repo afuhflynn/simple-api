@@ -17,6 +17,11 @@ export async function getAllTodos(_, res) {
 
 export async function createTodo(req, res) {
   let todo = await req.body;
+  if (!todo.body || !todo.complete) {
+    return res
+      .status(400)
+      .json({ error: "All fields are required", success: false });
+  }
   const id = randomUUID();
   todo = { ...todo, id };
 
@@ -57,6 +62,12 @@ export async function createTodo(req, res) {
 export async function updateTodo(req, res) {
   const todo = await req.body;
   const { id } = await req.params;
+
+  if (!todo.body) {
+    return res
+      .status(400)
+      .json({ error: "All fields are required", success: false });
+  }
 
   try {
     const todos = await readData();
