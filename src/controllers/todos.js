@@ -1,39 +1,11 @@
-import path from "path";
-import { fileURLToPath } from "url";
-import { readFile, writeFile } from "fs/promises";
 import { randomUUID } from "crypto";
+import { readData, writeData } from "../utils/index.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const readData = async () => {
-  const result = await readFile(path.join(__dirname, "..", "db", "data.json"), {
-    encoding: "utf-8",
-  });
-  const data = JSON.parse(result);
-  return data;
-};
-
-const writeData = async (data) => {
-  try {
-    await writeFile(
-      path.join(__dirname, "..", "db", "data.json"),
-      JSON.stringify(data),
-      {
-        encoding: "utf-8",
-      }
-    );
-    return true;
-  } catch (error) {
-    return false;
-  }
-};
-
-export async function getAllTodos(_, res, next) {
+export async function getAllTodos(_, res) {
   try {
     const todos = await readData();
     if (!todos) {
-      return res.status(500).json({ error: "Todos not found", success: false });
+      return res.status(404).json({ error: "Todos not found", success: false });
     }
     return res.status(200).json({ todos, success: true });
   } catch (error) {
@@ -43,7 +15,7 @@ export async function getAllTodos(_, res, next) {
   }
 }
 
-export async function createTodo(req, res, next) {
+export async function createTodo(req, res) {
   let todo = await req.body;
   const id = randomUUID();
   todo = { ...todo, id };
@@ -52,7 +24,7 @@ export async function createTodo(req, res, next) {
     const todos = await readData();
 
     if (!todos) {
-      return res.status(500).json({ error: "Todos not found", success: false });
+      return res.status(404).json({ error: "Todos not found", success: false });
     }
 
     // check if item already exists
@@ -73,9 +45,81 @@ export async function createTodo(req, res, next) {
         .json({ error: "An unexpected error occurred.", success: false });
     }
     return res
-      .status(200)
+      .status(201)
       .json({ todo, success: true, message: "Todo created successfully." });
   } catch (error) {
+    return res
+      .status(500)
+      .json({ error: "An unexpected error occurred.", success: false });
+  }
+}
+
+export async function updateTodo(req, res) {
+  const todo = await req.body;
+  const { id } = await req.params;
+
+  try {
+    const todos = await readData();
+
+    if (!todos) {
+      return res.status(404).json({ error: "Todos not found", success: false });
+    }
+
+    // check if item already exists
+    const foundTodo = todos.find((item) => item.id === id);
+
+    if (!foundTodo) {
+      return res.status(404).json({ error: "Todo not found.", success: false });
+    }
+
+    const updatedTodo = { ...foundTodo, body: todo.body };
+    const remainingTodos = todos.filter((item) => item.id !== id);
+    const result = await writeData([...remainingTodos, updatedTodo]);
+    if (!result) {
+      return res
+        .status(500)
+        .json({ error: "An unexpected error occurred.", success: false });
+    }
+    return res
+      .status(200)
+      .json({ todo, success: true, message: "Todo updated successfully." });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error: "An unexpected error occurred.", success: false });
+  }
+}
+
+export async function deleteTodo(req, res) {
+  const { id } = await req.params;
+
+  try {
+    const todos = await readData();
+
+    if (!todos) {
+      return res.status(404).json({ error: "Todos not found", success: false });
+    }
+
+    // check if item already exists
+    const foundTodo = todos.find((item) => item.id === id);
+
+    if (!foundTodo) {
+      return res.status(404).json({ error: "Todo not found.", success: false });
+    }
+    const remainingTodos = todos.filter((item) => item.id !== id);
+    const result = await writeData(remainingTodos);
+    if (!result) {
+      return res
+        .status(500)
+        .json({ error: "Todo not deleted.", success: false });
+    }
+    return res.status(200).json({
+      todo: foundTodo,
+      success: true,
+      message: "Todo deleted successfully.",
+    });
+  } catch (error) {
+    console.error(error);
     return res
       .status(500)
       .json({ error: "An unexpected error occurred.", success: false });
