@@ -16,14 +16,16 @@ export async function getAllTodos(_, res) {
 }
 
 export async function createTodo(req, res) {
-  let todo = await req.body;
-  if (!todo.body || !todo.complete) {
+  const { body, complete } = await req.body;
+
+  if (!body || complete === undefined) {
     return res
       .status(400)
       .json({ error: "All fields are required", success: false });
   }
+
   const id = randomUUID();
-  todo = { body: todo.body, complete: todo.complete, id };
+  const todo = { body, complete, id };
 
   try {
     const todos = await readData();
@@ -60,10 +62,10 @@ export async function createTodo(req, res) {
 }
 
 export async function updateTodo(req, res) {
-  const todo = await req.body;
+  const { body } = await req.body;
   const { id } = await req.params;
 
-  if (!todo.body) {
+  if (!body) {
     return res
       .status(400)
       .json({ error: "All fields are required", success: false });
@@ -83,7 +85,7 @@ export async function updateTodo(req, res) {
       return res.status(404).json({ error: "Todo not found.", success: false });
     }
 
-    const updatedTodo = { ...foundTodo, body: todo.body };
+    const updatedTodo = { ...foundTodo, body };
     const remainingTodos = todos.filter((item) => item.id !== id);
     const result = await writeData([...remainingTodos, updatedTodo]);
     if (!result) {
