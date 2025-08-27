@@ -23,7 +23,7 @@ export async function createTodo(req, res) {
       .json({ error: "All fields are required", success: false });
   }
   const id = randomUUID();
-  todo = { ...todo, id };
+  todo = { body: todo.body, complete: todo.complete, id };
 
   try {
     const todos = await readData();
