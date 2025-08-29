@@ -1,6 +1,7 @@
 import express from "express";
 import { config } from "dotenv"; // This package must be installed and an env file created in the root dir
 import morgan from "morgan";
+import cors from "cors";
 // import data from "./db/data.json";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -15,6 +16,8 @@ const PORT = process.env.PORT || 3000;
 const app = express();
 
 app.use(morgan("dev"));
+app.use(cors());
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "..", "public")));

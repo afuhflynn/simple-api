@@ -93,9 +93,11 @@ export async function updateTodo(req, res) {
         .status(500)
         .json({ error: "An unexpected error occurred.", success: false });
     }
-    return res
-      .status(200)
-      .json({ todo, success: true, message: "Todo updated successfully." });
+    return res.status(200).json({
+      todo: updatedTodo,
+      success: true,
+      message: "Todo updated successfully.",
+    });
   } catch (error) {
     return res
       .status(500)
