@@ -1,19 +1,14 @@
 import jwt from "jsonwebtoken";
-import { readData } from "../utils/index.js";
+import { prisma } from "../lib/prisma.js";
 const { verify } = jwt;
 
 export async function verifyToken(req, res, next) {
   const authHeaders = await req.headers.authorization;
   const sentCookie = authHeaders.replace("Bearer ", "");
   try {
-    // check if user record exists
-    const users = await readData("users");
-
-    if (!users) {
-      return res.status(500).json({ error: "Users not found", success: false });
-    }
-
-    const foundUser = users.find((item) => item?.accessToken === sentCookie);
+    const foundUser = await prisma.user.findFirst({
+      where: { accessToken: sentCookie },
+    });
 
     if (!sentCookie || !foundUser)
       return res

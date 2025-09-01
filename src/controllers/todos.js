@@ -1,9 +1,12 @@
-import { randomUUID } from "crypto";
-import { readData, writeData } from "../utils/index.js";
+import { prisma } from "../lib/prisma.js";
 
-export async function getAllTodos(_, res) {
+export async function getAllTodos(req, res) {
   try {
-    const todos = await readData("data");
+    const todos = await prisma.todo.findMany({
+      where: {
+        userId: req.id,
+      },
+    });
     if (!todos) {
       return res.status(404).json({ error: "Todos not found", success: false });
     }
@@ -24,20 +27,13 @@ export async function createTodo(req, res) {
       .json({ error: "All fields are required", success: false });
   }
 
-  const id = randomUUID();
-  const todo = { body, complete, id };
-
   try {
-    const todos = await readData("data");
-
-    if (!todos) {
-      return res.status(404).json({ error: "Todos not found", success: false });
-    }
-
     // check if item already exists
-    const foundTodo = todos.find(
-      (item) => item.body.toLowerCase() === todo.body.toLowerCase()
-    );
+    const foundTodo = await prisma.todo.findFirst({
+      where: {
+        body,
+      },
+    });
 
     if (foundTodo) {
       return res
@@ -45,8 +41,14 @@ export async function createTodo(req, res) {
         .json({ error: "Todo body already exists.", success: false });
     }
 
-    const result = await writeData([...todos, todo], "data");
-    if (!result) {
+    const todo = await prisma.todo.create({
+      data: {
+        body,
+        complete,
+        userId: req.id,
+      },
+    });
+    if (!todo) {
       return res
         .status(500)
         .json({ error: "An unexpected error occurred.", success: false });
@@ -72,16 +74,14 @@ export async function updateTodo(req, res) {
   }
 
   try {
-    const todos = await readData("data");
-
-    if (!todos) {
-      return res.status(404).json({ error: "Todos not found", success: false });
-    }
-
     // check if item already exists
-    const todoExists = todos.find(
-      (item) => item.body.toLowerCase() === body.toLowerCase()
-    );
+    const todoExists = await prisma.todo.findFirst({
+      where: {
+        id,
+        body,
+        userId: req.id,
+      },
+    });
 
     if (todoExists && id !== todoExists.id) {
       return res
@@ -89,24 +89,20 @@ export async function updateTodo(req, res) {
         .json({ error: "Todo body already exists.", success: false });
     }
 
-    // check if item already exists
-    const foundTodo = todos.find((item) => item.id === id);
+    const todo = await prisma.todo.update({
+      where: { id, userId: req.id },
+      data: {
+        body,
+      },
+    });
 
-    if (!foundTodo) {
-      return res.status(404).json({ error: "Todo not found.", success: false });
-    }
-
-    const updatedTodo = { ...foundTodo, body };
-    const remainingTodos = todos.filter((item) => item.id !== id);
-    const result = await writeData([...remainingTodos, updatedTodo], "data");
-
-    if (!result) {
+    if (!todo) {
       return res
         .status(500)
         .json({ error: "An unexpected error occurred.", success: false });
     }
     return res.status(200).json({
-      todo: updatedTodo,
+      todo,
       success: true,
       message: "Todo updated successfully.",
     });
@@ -129,29 +125,32 @@ export async function markComplete(req, res) {
   }
 
   try {
-    const todos = await readData("data");
-
-    if (!todos) {
-      return res.status(404).json({ error: "Todos not found", success: false });
-    }
-
     // check if item already exists
-    const foundTodo = todos.find((item) => item.id === id);
+    const foundTodo = await prisma.todo.findFirst({
+      id,
+      userId: req.id,
+    });
 
     if (!foundTodo) {
       return res.status(404).json({ error: "Todo not found.", success: false });
     }
 
-    const updatedTodo = { ...foundTodo, complete };
-    const remainingTodos = todos.filter((item) => item.id !== id);
-    const result = await writeData([...remainingTodos, updatedTodo], "data");
-    if (!result) {
+    const todo = await prisma.todo.update({
+      where: {
+        id,
+        userId: req.id,
+      },
+      data: {
+        complete: !foundTodo.complete,
+      },
+    });
+    if (!todo) {
       return res
         .status(500)
         .json({ error: "An unexpected error occurred.", success: false });
     }
     return res.status(200).json({
-      todo: updatedTodo,
+      todo,
       success: true,
       message: "Todo updated successfully.",
     });
@@ -166,27 +165,26 @@ export async function deleteTodo(req, res) {
   const { id } = await req.params;
 
   try {
-    const todos = await readData("data");
-
-    if (!todos) {
-      return res.status(404).json({ error: "Todos not found", success: false });
-    }
-
     // check if item already exists
-    const foundTodo = todos.find((item) => item.id === id);
+    const foundTodo = await prisma.todo.findFirst({
+      where: {
+        id,
+        userId: req.id,
+      },
+    });
 
     if (!foundTodo) {
       return res.status(404).json({ error: "Todo not found.", success: false });
     }
-    const remainingTodos = todos.filter((item) => item.id !== id);
-    const result = await writeData(remainingTodos, "data");
-    if (!result) {
+
+    const todo = await prisma.todo.delete({ where: { id, userId: req.id } });
+    if (!todo) {
       return res
         .status(500)
         .json({ error: "Todo not deleted.", success: false });
     }
     return res.status(200).json({
-      todo: foundTodo,
+      todo,
       success: true,
       message: "Todo deleted successfully.",
     });

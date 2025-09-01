@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -8,26 +9,32 @@ datasource db {
 }
 
 model User {
-  id          String   @id
+  id          String   @id @default(cuid())
   name        String
   email       String
-  accessToken String?
-  createdAt   DateTime
-  updatedAt   DateTime
+  password    String
+  accessToken String?  @db.Text // Enables db to store longer strings
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
 
   todos Todo[]
 
   @@unique([email])
+  @@index([email, id])
   @@map("users")
 }
 
 model Todo {
   id       String  @id @default(cuid())
   userId   String
-  body     String
+  body     String  @unique
   complete Boolean
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([id, userId, body])
   @@map("todos")
 }

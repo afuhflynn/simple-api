@@ -1,7 +1,7 @@
 import { PASSWORD_SALT } from "../constants/index.js";
-import { readData, writeData } from "../utils/index.js";
 import { compare, hash } from "bcryptjs";
 import { signUserTokenSetCookies } from "../utils/tokens.js";
+import { prisma } from "../lib/prisma.js";
 
 export async function signUp(req, res) {
   const { name, email, password } = await req.body;
@@ -12,14 +12,11 @@ export async function signUp(req, res) {
       .json({ error: "All fields are required.", success: false });
   }
   try {
-    // check if user record exists
-    const users = await readData("users");
-
-    if (!users) {
-      return res.status(500).json({ error: "Users not found", success: false });
-    }
-
-    const userExists = users.find((item) => item.email === email);
+    const userExists = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
 
     if (userExists) {
       return res
@@ -52,8 +49,12 @@ export async function signUp(req, res) {
       password: hashedPassword,
     };
 
-    const result = writeData([...users, newUser], "users");
-    if (!result) {
+    const user = await prisma.user.create({
+      data: {
+        ...newUser,
+      },
+    });
+    if (!user) {
       return res
         .status(500)
         .json({ error: "An unexpected error occurred.", success: false });
@@ -61,7 +62,7 @@ export async function signUp(req, res) {
 
     return res.status(201).json({
       message: "User created successfully.",
-      user: { ...newUser, password: undefined, accessToken: undefined },
+      user: { ...user, password: undefined, accessToken: undefined },
       success: true,
     });
   } catch (error) {
@@ -81,14 +82,11 @@ export async function signIn(req, res) {
       .json({ error: "All fields are required.", success: false });
   }
   try {
-    // check if user record exists
-    const users = await readData("users");
-
-    if (!users) {
-      return res.status(500).json({ error: "Users not found", success: false });
-    }
-
-    const foundUser = users.find((item) => item.email === email);
+    const foundUser = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
 
     if (!foundUser) {
       return res
@@ -115,11 +113,14 @@ export async function signIn(req, res) {
         .status(500)
         .json({ error: "An unexpected error occurred.", success: false });
     }
-    const remainingUsers = users.filter((user) => user.email !== email);
 
-    const updatedUser = { ...foundUser, accessToken };
-    const result = writeData([...remainingUsers, updatedUser], "users");
-    if (!result) {
+    const user = await prisma.user.update({
+      where: { id: foundUser.id },
+      data: {
+        accessToken,
+      },
+    });
+    if (!user) {
       return res
         .status(500)
         .json({ error: "An unexpected error occurred.", success: false });
@@ -127,7 +128,7 @@ export async function signIn(req, res) {
 
     return res.status(200).json({
       message: "User signed in successfully.",
-      user: { ...foundUser, password: undefined, accessToken: undefined },
+      user: { ...user, password: undefined, accessToken: undefined },
       success: true,
     });
   } catch (error) {
