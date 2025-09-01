@@ -9,13 +9,14 @@ datasource db {
 }
 
 model User {
-  id          String   @id @default(cuid())
-  name        String
-  email       String
-  password    String
-  accessToken String?  @db.Text // Enables db to store longer strings
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @default(now())
+  id           String   @id @default(cuid())
+  name         String
+  email        String
+  password     String
+  accessToken  String?  @db.Text // Enables db to store longer strings
+  refreshToken String?  @db.Text // Enables db to store longer strings
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now())
 
   todos Todo[]
 

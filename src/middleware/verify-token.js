@@ -3,39 +3,31 @@ import { prisma } from "../lib/prisma.js";
 const { verify } = jwt;
 
 export async function verifyToken(req, res, next) {
-  const authHeaders = await req.headers.authorization;
-  const sentCookie = authHeaders.replace("Bearer ", "");
+  const { accessToken } = req.cookies;
+
+  if (!accessToken)
+    return res
+      .status(401)
+      .json({ success: false, error: "Please login into your account" });
+
+  const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
   try {
+    // Verify the access token
+    const decoded = verify(accessToken, ACCESS_TOKEN_SECRET);
+
     const foundUser = await prisma.user.findFirst({
-      where: { accessToken: sentCookie },
+      where: { accessToken, id: decoded.id },
     });
 
-    if (!sentCookie || !foundUser)
+    if (!foundUser)
       return res
         .status(401)
         .json({ success: false, error: "Please login into your account" });
 
-    await verify(
-      sentCookie,
-      process.env.ACCESS_TOKEN_SECRET,
-      {
-        algorithms: ["HS256"],
-      },
-      async (error, data) => {
-        if (error) {
-          console.error({ error });
-          return res.status(401).json({
-            success: false,
-            error: "Please login into your account",
-          });
-        }
-
-        req.id = data.id;
-        req.name = data.name;
-        req.email = data.email;
-        next();
-      }
-    );
+    req.id = foundUser.id;
+    req.name = foundUser.name;
+    req.email = foundUser.email;
+    next();
   } catch (error) {
     console.error({ error });
     return res

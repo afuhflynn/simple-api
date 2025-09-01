@@ -1,9 +1,22 @@
 import { Router } from "express";
-import { signIn, signUp } from "../controllers/users.js";
+import {
+  getCurrentUser,
+  logout,
+  refreshToken,
+  signIn,
+  signUp,
+} from "../controllers/users.js";
+import { verifyToken } from "../middleware/verify-token.js";
 
 const usersRouter = Router();
 
 usersRouter.post("/sign-up", signUp);
 usersRouter.post("/sign-in", signIn);
+
+usersRouter.post("/refresh-token", refreshToken);
+usersRouter.post("/logout", logout);
+
+// Protected routes
+usersRouter.get("/me", verifyToken, getCurrentUser);
 
 export { usersRouter };
