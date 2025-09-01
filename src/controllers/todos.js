@@ -127,8 +127,10 @@ export async function markComplete(req, res) {
   try {
     // check if item already exists
     const foundTodo = await prisma.todo.findFirst({
-      id,
-      userId: req.id,
+      where: {
+        id,
+        userId: req.id,
+      },
     });
 
     if (!foundTodo) {
@@ -145,9 +147,10 @@ export async function markComplete(req, res) {
       },
     });
     if (!todo) {
-      return res
-        .status(500)
-        .json({ error: "An unexpected error occurred.", success: false });
+      return res.status(500).json({
+        error: "An unexpected error occurred.",
+        success: false,
+      });
     }
     return res.status(200).json({
       todo,
