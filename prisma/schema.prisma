@@ -1,0 +1,33 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id
+  name        String
+  email       String
+  accessToken String?
+  createdAt   DateTime
+  updatedAt   DateTime
+
+  todos Todo[]
+
+  @@unique([email])
+  @@map("users")
+}
+
+model Todo {
+  id       String  @id @default(cuid())
+  userId   String
+  body     String
+  complete Boolean
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("todos")
+}

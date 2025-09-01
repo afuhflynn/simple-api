@@ -4,7 +4,7 @@ const { verify } = jwt;
 
 export async function verifyToken(req, res, next) {
   const authHeaders = await req.headers.authorization;
-  const sentCookie = authHeaders.trim().replace("Bearer ", "");
+  const sentCookie = authHeaders.replace("Bearer ", "");
   try {
     // check if user record exists
     const users = await readData("users");

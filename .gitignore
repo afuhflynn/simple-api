@@ -11,3 +11,5 @@ node_modules
 
 # data files
 src/db/data.json
+
+/src/generated/prisma

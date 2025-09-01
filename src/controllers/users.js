@@ -3,7 +3,7 @@ import { readData, writeData } from "../utils/index.js";
 import { compare, hash } from "bcryptjs";
 import { signUserTokenSetCookies } from "../utils/tokens.js";
 
-export async function signUp(req, res, next) {
+export async function signUp(req, res) {
   const { name, email, password } = await req.body;
 
   if (!name || !email || !password) {
@@ -72,7 +72,7 @@ export async function signUp(req, res, next) {
   }
 }
 
-export async function signIn(req, res, next) {
+export async function signIn(req, res) {
   const { email, password } = await req.body;
 
   if (!email || !password) {
