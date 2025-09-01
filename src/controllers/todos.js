@@ -3,7 +3,7 @@ import { readData, writeData } from "../utils/index.js";
 
 export async function getAllTodos(_, res) {
   try {
-    const todos = await readData();
+    const todos = await readData("data");
     if (!todos) {
       return res.status(404).json({ error: "Todos not found", success: false });
     }
@@ -28,7 +28,7 @@ export async function createTodo(req, res) {
   const todo = { body, complete, id };
 
   try {
-    const todos = await readData();
+    const todos = await readData("data");
 
     if (!todos) {
       return res.status(404).json({ error: "Todos not found", success: false });
@@ -45,7 +45,7 @@ export async function createTodo(req, res) {
         .json({ error: "Todo body already exists.", success: false });
     }
 
-    const result = await writeData([...todos, todo]);
+    const result = await writeData([...todos, todo], "data");
     if (!result) {
       return res
         .status(500)
@@ -72,7 +72,7 @@ export async function updateTodo(req, res) {
   }
 
   try {
-    const todos = await readData();
+    const todos = await readData("data");
 
     if (!todos) {
       return res.status(404).json({ error: "Todos not found", success: false });
@@ -80,10 +80,10 @@ export async function updateTodo(req, res) {
 
     // check if item already exists
     const todoExists = todos.find(
-      (item) => item.body.toLowerCase() === todo.body.toLowerCase()
+      (item) => item.body.toLowerCase() === body.toLowerCase()
     );
 
-    if (todoExists) {
+    if (todoExists && id !== todoExists.id) {
       return res
         .status(409)
         .json({ error: "Todo body already exists.", success: false });
@@ -98,7 +98,8 @@ export async function updateTodo(req, res) {
 
     const updatedTodo = { ...foundTodo, body };
     const remainingTodos = todos.filter((item) => item.id !== id);
-    const result = await writeData([...remainingTodos, updatedTodo]);
+    const result = await writeData([...remainingTodos, updatedTodo], "data");
+
     if (!result) {
       return res
         .status(500)
@@ -110,6 +111,7 @@ export async function updateTodo(req, res) {
       message: "Todo updated successfully.",
     });
   } catch (error) {
+    console.error({ error });
     return res
       .status(500)
       .json({ error: "An unexpected error occurred.", success: false });
@@ -127,7 +129,7 @@ export async function markComplete(req, res) {
   }
 
   try {
-    const todos = await readData();
+    const todos = await readData("data");
 
     if (!todos) {
       return res.status(404).json({ error: "Todos not found", success: false });
@@ -142,7 +144,7 @@ export async function markComplete(req, res) {
 
     const updatedTodo = { ...foundTodo, complete };
     const remainingTodos = todos.filter((item) => item.id !== id);
-    const result = await writeData([...remainingTodos, updatedTodo]);
+    const result = await writeData([...remainingTodos, updatedTodo], "data");
     if (!result) {
       return res
         .status(500)
@@ -164,7 +166,7 @@ export async function deleteTodo(req, res) {
   const { id } = await req.params;
 
   try {
-    const todos = await readData();
+    const todos = await readData("data");
 
     if (!todos) {
       return res.status(404).json({ error: "Todos not found", success: false });
@@ -177,7 +179,7 @@ export async function deleteTodo(req, res) {
       return res.status(404).json({ error: "Todo not found.", success: false });
     }
     const remainingTodos = todos.filter((item) => item.id !== id);
-    const result = await writeData(remainingTodos);
+    const result = await writeData(remainingTodos, "data");
     if (!result) {
       return res
         .status(500)

@@ -6,6 +6,7 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import { tododsRoute } from "./routes/todos.route.js";
+import { usersRouter } from "./routes/users.route.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,6 +31,8 @@ app.get("/", (req, res) => {
 });
 
 app.use("/todos", tododsRoute);
+
+app.use("/users", usersRouter);
 
 // Respond to 404 requests (Page not found)
 app.use((req, res) => {

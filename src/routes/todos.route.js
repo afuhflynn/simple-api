@@ -6,17 +6,18 @@ import {
   markComplete,
   updateTodo,
 } from "../controllers/todos.js";
+import { verifyToken } from "../middleware/verify-token.js";
 
 const tododsRoute = Router();
 
-tododsRoute.get("/", getAllTodos);
+tododsRoute.get("/", verifyToken, getAllTodos);
 
-tododsRoute.post("/", createTodo);
+tododsRoute.post("/", verifyToken, createTodo);
 
-tododsRoute.put("/:id", updateTodo);
+tododsRoute.put("/:id", verifyToken, updateTodo);
 
-tododsRoute.put("/:id/markcomplete", markComplete);
+tododsRoute.put("/:id/markcomplete", verifyToken, markComplete);
 
-tododsRoute.delete("/:id", deleteTodo);
+tododsRoute.delete("/:id", verifyToken, deleteTodo);
 
 export { tododsRoute };
