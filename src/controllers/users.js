@@ -192,6 +192,7 @@ export async function refreshToken(req, res) {
     return res.status(200).json({
       message: "Token refreshed successfully.",
       user: removeSensitiveUserData(user),
+      accessToken,
       success: true,
     });
   } catch (error) {
