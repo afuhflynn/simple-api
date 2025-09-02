@@ -163,7 +163,7 @@ export async function refreshToken(req, res) {
   const { refreshToken } = req.cookies;
   if (!refreshToken) {
     return res
-      .status(401)
+      .status(403)
       .json({ error: "Unauthorized: No refresh token found.", success: false });
   }
 

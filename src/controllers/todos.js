@@ -164,6 +164,34 @@ export async function markComplete(req, res) {
   }
 }
 
+export async function clearComplete(req, res) {
+  try {
+    // check if item already exists
+    const deletedTodos = await prisma.todo.deleteMany({
+      where: {
+        userId: req.id,
+        complete: true,
+      },
+    });
+
+    if (!deletedTodos) {
+      return res
+        .status(404)
+        .json({ error: "Todos not deleted. Try again.", success: false });
+    }
+
+    return res.status(200).json({
+      todos: deletedTodos,
+      success: true,
+      message: "Todos deleted successfully.",
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error: "An unexpected error occurred.", success: false });
+  }
+}
+
 export async function deleteTodo(req, res) {
   const { id } = await req.params;
 
