@@ -13,3 +13,7 @@ node_modules
 src/db/data.json
 
 /src/generated/prisma
+
+# pnpm files
+pnpm-lock.yaml
+pnpm-workspace.yaml

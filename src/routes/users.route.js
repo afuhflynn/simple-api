@@ -13,7 +13,7 @@ const usersRouter = Router();
 usersRouter.post("/sign-up", signUp);
 usersRouter.post("/sign-in", signIn);
 
-usersRouter.post("/refresh-token", refreshToken);
+usersRouter.get("/refresh-token", refreshToken);
 usersRouter.post("/logout", logout);
 
 // Protected routes
