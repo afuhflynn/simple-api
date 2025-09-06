@@ -4,7 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -13,8 +13,8 @@ model User {
   name         String
   email        String
   password     String
-  accessToken  String?  @db.Text // Enables db to store longer strings
-  refreshToken String?  @db.Text // Enables db to store longer strings
+  accessToken  String? // Enables db to store longer strings
+  refreshToken String? // Enables db to store longer strings
   createdAt    DateTime @default(now())
   updatedAt    DateTime @default(now())
 
