@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String
+  password     String
+  accessToken  String? // Enables db to store longer strings
+  refreshToken String? // Enables db to store longer strings
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now())
+
+  todos Todo[]
+
+  @@unique([email])
+  @@index([email, id])
+  @@map("users")
+}
+
+model Todo {
+  id       String  @id @default(cuid())
+  userId   String
+  body     String  @unique
+  complete Boolean
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([id, userId, body])
+  @@map("todos")
+}
