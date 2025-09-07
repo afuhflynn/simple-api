@@ -2,6 +2,7 @@ import express from "express";
 import { config } from "dotenv"; // This package must be installed and an env file created in the root dir
 import morgan from "morgan";
 import cors from "cors";
+
 // import data from "./db/data.json";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -46,3 +47,5 @@ app.use((req, res) => {
 app.listen(PORT, () => {
   console.log("Server started on port: ", PORT);
 });
+
+export default app;
